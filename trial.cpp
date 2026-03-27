@@ -7,9 +7,16 @@
 #include <sstream>
 
 /* ==============Account Number Generator============== */
-std::string generateAccountNumber(const std::string&Type){
+std::string generateAccountNumber(const std::string&Type, int& counter){
     std::stringstream ss;
-    
+
+    if(Type == "saving"){
+        ss << "SBI" << std::setw(7) << std::setfill('0') << counter++;
+    }
+    else{
+        ss << "HDFC" << std::setw(7) << std::setfill('0') <<counter++;
+    }
+    return ss.str();
 }
 /* ==============Utility Functions============== */
 
@@ -85,15 +92,15 @@ public:
         balance_ -= amount;
         return true;
     }
-    virtual ~BankAccount();
+    virtual ~BankAccount() = default;
     virtual std::string accountType() const = 0;
 
     void print() const {
         std::cout << "----------------------------\n";
         std::cout << "Account Holder : " << name_ << "\n";
         std::cout << "Account Number : " << number_ << "\n";
-        std::cout << "Account Type   : " << accountType(); // Assuming all accounts are savings for simplicity
-        std::cout << "Balance        : " << balance_ << "\n";
+        std::cout << "Account Type   : " << accountType() <<"\n";
+        std::cout << "Balance        : " <<std::fixed << std::setprecision(2) << balance_ << "\n";
         std::cout << "----------------------------\n";
     }
 };
@@ -101,35 +108,23 @@ public:
 /* Derived class for Savings Account */
 class SavingAccount : public BankAccount {
 public:
-    SavingAccount(std::strng name, std::string number, double opening)
+    SavingAccount(std::string name, std::string number, double opening)
         : BankAccount(name, number, opening) {}
 
         
         std::string accountType() const override {
-            std::string confirm = readline("We're having Saving Account only in SBI.Do You want to proceed? (y/n): ");
-            transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
-            if (!confirm.empty() && confirm[0] == 'y') {
-                
-                return "Savings";
-            }
-            return "Thank you for let us know. Please choose another account type.";
+            return "Savings";
         }
 };
 
 /*Derived class for Current Account */
-class CurrentAccount : public: BankAccount {
+class CurrentAccount : public BankAccount {
     public:
     CurrentAccount (std::string name, std::string number, double opening)
         : BankAccount(name, number, opening) {}
         
         std::string accountType() const override{
-            std::string confirm = readline("We're having Current Account only in HDFC.Do You want to proceed? (y/n): ");
-            transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
-            if (!confirm.empty() && confirm[0] == 'y') {
-                
-                return "Current";
-            }
-            return "Thank you for let us know. Please choose another account type.";
+            return "Current";
         }   
 };
 
@@ -151,7 +146,8 @@ void showMenu() {
 int main() {
     std::unordered_map<std::string, BankAccount*> accounts;
     bool running = true;
-
+    int SBIcounter = 1;
+    int HDFCcounter = 1;
     while (running) {
         showMenu();
         int choice = 0;
@@ -167,29 +163,26 @@ int main() {
                 std::string name = readLine("Enter Name           : ");
                 std::string Type = readLine("Enter Account Type   : ");
                 transform(Type.begin(), Type.end(), Type.begin(), ::tolower);
-                if(Type == "savings" || Type == "saving"){
-                    SavingAccount* acc = new account(name, generateAccountNumber(Type), 0.0);
-                    accounts.emplace(acc->number(), acc);
-
-
-                }
-                if (number.empty()) {
-                    std::cout << "Account number cannot be empty.\n";
-                    break;
-                }
-                if (accounts.count(number)) {
-                    std::cout << "Account already exists.\n";
-                    break;
-                }
-
                 double opening = 0.0;
                 if (!readDouble("Enter Opening Amount : ", opening) || opening < 0.0) {
                     std::cout << "Invalid opening amount.\n";
                     break;
                 }
+                if(Type == "saving"){
+                    std:: string number = generateAccountNumber(Type, SBIcounter);
+                    accounts.emplace(number, new SavingAccount(name, number, opening));
+                }
+                else if(Type == "current"){
+                    std:: string number = generateAccountNumber(Type, HDFCcounter);
+                    accounts.emplace(number, new CurrentAccount(name, number, opening));
+                }
+                else{
+                    std::cout << "Invalid account type.\n";
+                    break;
+                }
 
-                accounts.emplace(number, BankAccount{name, number, opening});
                 std::cout << "Account created successfully.\n";
+                std::cout << "Your Account Number is : " << accounts.begin()->second->number() << "\n";
                 break;
             }
 
@@ -203,13 +196,13 @@ int main() {
                 }
 
                 double amt;
-                if (!readDouble("Enter Deposit Amount : ", amt) || !it->second.deposit(amt)) {
+                if (!readDouble("Enter Deposit Amount : ", amt) || !it->second->deposit(amt)) {
                     std::cout << "Invalid deposit amount.\n";
                     break;
                 }
 
                 std::cout << "Deposit successful. New balance: "
-                          << it->second.balance() << "\n";
+                          << it->second->balance() << "\n";
                 break;
             }
 
@@ -224,13 +217,13 @@ int main() {
 
                 double amt;
                 if (!readDouble("Enter Withdrawal Amount : ", amt)
-                    || !it->second.withdraw(amt)) {
+                    || !it->second->withdraw(amt)) {
                     std::cout << "Withdrawal failed (invalid or insufficient balance).\n";
                     break;
                 }
 
                 std::cout << "Withdrawal successful. New balance: "
-                          << it->second.balance() << "\n";
+                          << it->second->balance() << "\n";
                 break;
             }
 
@@ -243,7 +236,7 @@ int main() {
                     break;
                 }
 
-                it->second.print();
+                it->second->print();
                 break;
             }
 
@@ -256,9 +249,9 @@ int main() {
                     break;
                 }
 
-                it->second.print();
+                it->second->print();
 
-                if (it->second.balance() > 0.0) {
+                if (it->second->balance() > 0.0) {
                     std::cout << "Withdraw balance before deleting account.\n";
                     break;
                 }
@@ -267,6 +260,7 @@ int main() {
                 std::transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
 
                 if (!confirm.empty() && confirm[0] == 'y') {
+                    delete it->second;
                     accounts.erase(it);
                     std::cout << "Account deleted successfully.\n";
                 } else {
@@ -277,6 +271,10 @@ int main() {
 
             case 6:
                 std::cout << "Thank you for using the Bank Management System.\n";
+                for (auto& details : accounts) {
+                    delete details.second;
+                }
+                accounts.clear();
                 running = false;
                 break;
 
