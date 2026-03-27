@@ -3,8 +3,15 @@
 #include <unordered_map>
 #include <limits>
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
 
-//Utility Functions
+/* ==============Account Number Generator============== */
+std::string generateAccountNumber(const std::string&Type){
+    std::stringstream ss;
+    
+}
+/* ==============Utility Functions============== */
 
 void clearInput() {
     std::cin.clear();
@@ -78,7 +85,7 @@ public:
         balance_ -= amount;
         return true;
     }
-    virtual ~BankAccount() = default;
+    virtual ~BankAccount();
     virtual std::string accountType() const = 0;
 
     void print() const {
@@ -94,24 +101,37 @@ public:
 /* Derived class for Savings Account */
 class SavingAccount : public BankAccount {
 public:
-    SavingAccount(std::string name, std::string number, double opening)
+    SavingAccount(std::strng name, std::string number, double opening)
         : BankAccount(name, number, opening) {}
-        std::string accountType() const override {
+
         
-        return "Savings\n";
+        std::string accountType() const override {
+            std::string confirm = readline("We're having Saving Account only in SBI.Do You want to proceed? (y/n): ");
+            transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
+            if (!confirm.empty() && confirm[0] == 'y') {
+                
+                return "Savings";
+            }
+            return "Thank you for let us know. Please choose another account type.";
         }
 };
 
 /*Derived class for Current Account */
-class CurrentAccount : public BankAccount {
+class CurrentAccount : public: BankAccount {
     public:
     CurrentAccount (std::string name, std::string number, double opening)
         : BankAccount(name, number, opening) {}
+        
         std::string accountType() const override{
-        return "Current\n";
-        }
+            std::string confirm = readline("We're having Current Account only in HDFC.Do You want to proceed? (y/n): ");
+            transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
+            if (!confirm.empty() && confirm[0] == 'y') {
+                
+                return "Current";
+            }
+            return "Thank you for let us know. Please choose another account type.";
+        }   
 };
-
 
 /* ================= Menu ================= */
 
@@ -145,8 +165,14 @@ int main() {
 
             case 1: { // Create
                 std::string name = readLine("Enter Name           : ");
-                std::string number = readLine("Enter Account Number : ");
-                std:: string Type = readLine("Enter Account Type   : ");
+                std::string Type = readLine("Enter Account Type   : ");
+                transform(Type.begin(), Type.end(), Type.begin(), ::tolower);
+                if(Type == "savings" || Type == "saving"){
+                    SavingAccount* acc = new account(name, generateAccountNumber(Type), 0.0);
+                    accounts.emplace(acc->number(), acc);
+
+
+                }
                 if (number.empty()) {
                     std::cout << "Account number cannot be empty.\n";
                     break;
@@ -161,14 +187,8 @@ int main() {
                     std::cout << "Invalid opening amount.\n";
                     break;
                 }
-                std::transform(Type.begin(), Type.end(), Type.begin(), ::tolower);
-                if(Type == "savings" || Type == "saving"){
-                    accounts[number] = new SavingAccount(name, number, opening);
-                }
-                else{
-                    accounts[number] = new CurrentAccount(name, number, opening);
-                }
-                //accounts.emplace(number, BankAccount{name, number, opening});
+
+                accounts.emplace(number, BankAccount{name, number, opening});
                 std::cout << "Account created successfully.\n";
                 break;
             }
@@ -183,13 +203,13 @@ int main() {
                 }
 
                 double amt;
-                if (!readDouble("Enter Deposit Amount : ", amt) || !it->second->deposit(amt)) {
+                if (!readDouble("Enter Deposit Amount : ", amt) || !it->second.deposit(amt)) {
                     std::cout << "Invalid deposit amount.\n";
                     break;
                 }
 
                 std::cout << "Deposit successful. New balance: "
-                          << it->second->balance() << "\n";
+                          << it->second.balance() << "\n";
                 break;
             }
 
@@ -204,13 +224,13 @@ int main() {
 
                 double amt;
                 if (!readDouble("Enter Withdrawal Amount : ", amt)
-                    || !it->second->withdraw(amt)) {
+                    || !it->second.withdraw(amt)) {
                     std::cout << "Withdrawal failed (invalid or insufficient balance).\n";
                     break;
                 }
 
                 std::cout << "Withdrawal successful. New balance: "
-                          << it->second->balance() << "\n";
+                          << it->second.balance() << "\n";
                 break;
             }
 
@@ -223,7 +243,7 @@ int main() {
                     break;
                 }
 
-                it->second->print();
+                it->second.print();
                 break;
             }
 
@@ -236,9 +256,9 @@ int main() {
                     break;
                 }
 
-                it->second->print();
+                it->second.print();
 
-                if (it->second->balance() > 0.0) {
+                if (it->second.balance() > 0.0) {
                     std::cout << "Withdraw balance before deleting account.\n";
                     break;
                 }
@@ -247,7 +267,6 @@ int main() {
                 std::transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
 
                 if (!confirm.empty() && confirm[0] == 'y') {
-                    delete it->second;
                     accounts.erase(it);
                     std::cout << "Account deleted successfully.\n";
                 } else {
