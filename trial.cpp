@@ -163,6 +163,7 @@ int main() {
                 std::string name = readLine("Enter Name           : ");
                 std::string Type = readLine("Enter Account Type   : ");
                 transform(Type.begin(), Type.end(), Type.begin(), ::tolower);
+                
                 double opening = 0.0;
                 if (!readDouble("Enter Opening Amount : ", opening) || opening < 0.0) {
                     std::cout << "Invalid opening amount.\n";
@@ -253,7 +254,18 @@ int main() {
 
                 if (it->second->balance() > 0.0) {
                     std::cout << "Withdraw balance before deleting account.\n";
-                    break;
+                    std::string confirm = readLine("Withdraw full balance? (y/n): ");
+                    std::transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
+                    if (!confirm.empty() && confirm[0] == 'y') {
+                        it->second->withdraw(it->second->balance());
+                        std::cout << "Balance witdrawn successfully.\n";
+                        break;
+                    }
+                    else {
+                        std::cout << "Withdraw Manually.\n";
+                        break;
+                    }
+                    
                 }
 
                 std::string confirm = readLine("Delete this account? (y/n): ");
