@@ -65,8 +65,12 @@ public:
 
     virtual ~BankAccount() = default;
 
-    const std::string& number() const { return number_; }
-    double balance() const { return balance_; }
+    const std::string& number() const { 
+        return number_;
+    }
+    double balance() const { 
+        return balance_;
+    }
 
     bool deposit(double amount) {
         if (amount < 0.0) 
@@ -242,7 +246,7 @@ int main() {
             std::string confirm = readLine("Delete account? (y/n): ");
             std::transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
             if (!confirm.empty() && (confirm[0]) == 'y') {
-                accounts.erase(it); // ✅ auto-delete
+                accounts.erase(it);
                 std::cout << "Account deleted.\n";
                 break;
             }
@@ -253,7 +257,7 @@ int main() {
             
         }
 
-        case 6:
+        case 6: // Exit case
             running = false;
             std::cout << "Thank you for using our banking system!\n";
             break;

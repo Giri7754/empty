@@ -50,11 +50,24 @@ bool readInt(const std::string& prompt, int& out) {
     clearInput();
     return true;
 }
+
+/* ================= Menu ================= */
+void showMenu() {
+    std::cout << "\n============ Bank Management System ============\n";
+    std::cout << "1. Create Account\n";
+    std::cout << "2. Deposit Money\n";
+    std::cout << "3. Withdraw Money\n";
+    std::cout << "4. Display Account Details\n";
+    std::cout << "5. Delete Account\n";
+    std::cout << "6. Exit\n";
+    std::cout << "===============================================\n";
+}
+
 /* ================= Factory ================= */
 
 /* ================= BankAccount Class ================= */
 class BankAccount {
-private:
+protected:
     std::string name_;
     std::string number_;
     double balance_{0.0};
@@ -65,8 +78,12 @@ public:
 
     virtual ~BankAccount() = default;
 
-    const std::string& number() const { return number_; }
-    double balance() const { return balance_; }
+    const std::string& number() const { 
+        return number_; 
+    }
+    double balance() const { 
+        return balance_; 
+    }
 
     bool deposit(double amount) {
         if (amount < 0.0) 
@@ -115,29 +132,61 @@ public:
     }
 };
 
-/* ================= Menu ================= */
-void showMenu() {
-    std::cout << "\n============ Bank Management System ============\n";
-    std::cout << "1. Create Account\n";
-    std::cout << "2. Deposit Money\n";
-    std::cout << "3. Withdraw Money\n";
-    std::cout << "4. Display Account Details\n";
-    std::cout << "5. Delete Account\n";
-    std::cout << "6. Exit\n";
-    std::cout << "===============================================\n";
-}
+/* ================= Factory ================= */
+class AccountFactory {
+    public:
+    static std::unique_ptr<BankAccount> createAccount(const std::string& type, const std::string& name, const std::string& number, double opening) {
+        if (type == "saving") {
+            return std::make_unique<SavingAccount>(name, number, opening);
+        }
+        else if (type == "current") {
+            return std::make_unique<CurrentAccount>(name, number, opening);
+        }
+        return nullptr;
+    }
+};
+/* ================= Singleton ================= */
+class AccountManager {
+    private:
+    std::unordered_map<std::string, std::unique_ptr<BankAccount>> accounts;
 
+    AccountManager() = default;
+
+    public:
+    AccountManager(const AccountManager&) = delete;
+    AccountManager& operator=(const AccountManager&) = delete;
+
+    static AccountManager& getInstance()
+    {
+        static AccountManager Manager;
+        return Manager;
+    }
+
+    void addAccount(std::unique_ptr<BankAccount> account) {
+        accounts[account->number()] = std::move(account);
+    }
+
+    BankAccount* find(const std::string& number){
+        auto it = accounts.find(number);
+        if (it !=accounts.end()) {
+            return it->second.get();
+        }
+        return nullptr;
+    }
+
+    bool removeAccount(const std::string& number) {
+        return accounts.erase(number) > 0;
+    }
+};
 /* ================= Main ================= */
 int main() {
-    std::unordered_map<std::string, std::unique_ptr<BankAccount>> accounts;
-    int SBIcounter = 1;
-    int HDFCcounter = 1;
-
+    auto& manager = AccountManager::getInstance();
+    int SBIcounter = 1, HDFCcounter = 1;
     bool running = true;
     while (running) {
         showMenu();
         int choice = 0;
-        if (!readInt("Enter your choice (1–6): ", choice)) {
+        if (!readInt("Enter your choice (1 - 6): ", choice)) {
             std::cout << "Invalid choice.\n";
             continue;
         }
@@ -145,7 +194,7 @@ int main() {
 
         case 1: { // Create
             std::string name = readLine("Enter Name         : ");
-            std::string type = readLine("Enter Account Type : ");
+            std::string type = readLine("Enter Account Type (saving/current) : ");
             std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
             double opening;
@@ -154,64 +203,62 @@ int main() {
                 break;
             }
 
-            std::string number;
-            if (type == "saving") {
-                number = generateAccountNumber(type, SBIcounter);
-                accounts[number] = std::make_unique<SavingAccount>(name, number, opening);
-            }
-            else if (type == "current") {
-                number = generateAccountNumber(type, HDFCcounter);
-                accounts[number] = std::make_unique<CurrentAccount>(name, number, opening);
-            }
-            else {
-                std::cout << "Invalid account type\n";
+            std::string number = (type == "saving") 
+            ? generateAccountNumber(type, SBIcounter) 
+            : generateAccountNumber(type, HDFCcounter);
+            
+            auto acc = AccountFactory::createAccount(type, name, number, opening);
+
+            if(!acc) {
+                std::cout << "Invalid account type.\n";
                 break;
             }
 
-            std::cout << "Account created successfully.\n";
-            std::cout << "Your Account Number is : " << number << "\n";
+            manager.addAccount(std::move(acc));
+            std::cout << "Account created successfully! Account Number: " << number << "\n";
             break;
         }
 
         case 2: { // Deposit
             std::string num = readLine("Enter Account Number: ");
-            auto it = accounts.find(num);
-            if (it == accounts.end()) {
+            if(manager.find(num) == nullptr) {
                 std::cout << "Account not found.\n";
                 break;
-            }   
-
+            }
             double amt;
-            if (!readDouble("Enter Amount: ", amt) || !it->second->deposit(amt)) {
+            if(!readDouble("Enter Amount: ", amt)) {
                 std::cout << "Invalid deposit\n";
                 break;
             }
-            std::cout << "New Balance: " << it->second->balance() << "\n";
-            break;
+            if(auto acc = manager.find(num)) {
+                acc->deposit(amt);
+                std::cout <<"Deposit Successful. New Balance: " << acc->balance() << "\n";
+                break;
+            }
         }
 
         case 3: { // Withdraw
             std::string num = readLine("Enter Account Number: ");
-            auto it = accounts.find(num);
-            if (it == accounts.end()) {
+            auto acc = manager.find(num);
+            if (acc == nullptr) {
                 std::cout << "Account not found.\n";
                 break;
             }   
 
             double amt;
-            if (!readDouble("Enter Amount: ", amt) || !it->second->withdraw(amt)) {
+            if (!readDouble("Enter Amount: ", amt) || !acc->withdraw(amt)) {
                 std::cout << "Withdrawal failed (invalid amount or insufficient balance).\n";
                 break;
             }
-            std::cout << "Withdrawal successful. New balance: " << it->second->balance() << "\n";
+            std::cout << "Withdrawal successful. New balance: " << acc->balance() << "\n";
             break;
         }
 
         case 4: { // Display
             std::string num = readLine("Enter Account Number: ");
-            auto it = accounts.find(num);
-            if (it != accounts.end()) {
-                it->second->print();
+            auto acc = manager.find(num);
+            if (acc != nullptr) {
+                acc->print();
                 break;
             }
             std::cout << "Account not found.\n";
@@ -220,21 +267,21 @@ int main() {
 
         case 5: { // Delete
             std::string num = readLine("Enter Account Number: ");
-            auto it = accounts.find(num);
-            if (it == accounts.end()) {
+            auto acc = manager.find(num);
+            if (acc == nullptr) {
                 std::cout << "Account not found.\n";
                 break;
             }
 
-            it->second->print();
+            acc->print();
 
-            if (it->second->balance() > 0.0) {
+            if (acc->balance() > 0.0) {
                 std::cout << "Withdraw the balance before deleting the account.\n";
                 std::string confirm = readLine("Withdraw balance? (y/n): ");
                 std::transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
                 if (!confirm.empty() && confirm[0] == 'y')
                  {
-                    it->second->withdraw(it->second->balance());
+                    acc->withdraw(acc->balance());
                     std::cout << "Withdrawal successful.\n";
                 }
             }
@@ -242,7 +289,7 @@ int main() {
             std::string confirm = readLine("Delete account? (y/n): ");
             std::transform(confirm.begin(), confirm.end(), confirm.begin(), ::tolower);
             if (!confirm.empty() && (confirm[0]) == 'y') {
-                accounts.erase(it); // ✅ auto-delete
+                manager.removeAccount(num);
                 std::cout << "Account deleted.\n";
                 break;
             }
@@ -253,7 +300,7 @@ int main() {
             
         }
 
-        case 6:
+        case 6: // Exit case
             running = false;
             std::cout << "Thank you for using our banking system!\n";
             break;
