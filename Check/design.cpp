@@ -63,8 +63,6 @@ void showMenu() {
     std::cout << "===============================================\n";
 }
 
-/* ================= Factory ================= */
-
 /* ================= BankAccount Class ================= */
 class BankAccount {
 protected:
