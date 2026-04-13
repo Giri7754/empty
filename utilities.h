@@ -7,3 +7,4 @@ void clearInput();
 std::string readLine(const std::string& prompt);
 bool readDouble(const std::string& prompt, double& out);
 bool readInt(const std::string& prompt, int& out);
+bool isValidMobileNumber(const std::string& mobile);

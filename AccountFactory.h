@@ -7,12 +7,12 @@
 /* ================= Factory ================= */
 class AccountFactory {
     public:
-    static std::unique_ptr<BankAccount> createAccount(const std::string& type, const std::string& name, const std::string& number, double opening) {
-        if (type == "saving") {
-            return std::make_unique<SavingAccount>(name, number, opening);
+    static std::unique_ptr<BankAccount> createAccount(const std::string& type, const std::string& name, const std::string& number, double opening, const std::string& mobile) {
+        if (type[0] == 's') {
+            return std::make_unique<SavingAccount>(name, number, opening, mobile);
         }
-        else if (type == "current") {
-            return std::make_unique<CurrentAccount>(name, number, opening);
+        else if (type[0] == 'c') {
+            return std::make_unique<CurrentAccount>(name, number, opening, mobile);
         }
         return nullptr;
     }

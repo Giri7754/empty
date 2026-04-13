@@ -21,6 +21,7 @@ The application is designed using **Singleton** and **Factory Method** design pa
 ## Utility Function
 
 ---GenerateAccountNumber---
+
 **Concepts Used:**
 - String formatting
 - Pass‑by‑reference
@@ -31,7 +32,7 @@ Generates a unique account number based on the account type using a counter to e
 
 ---
 
-### readLine
+### `readLine`
 **Concepts Used:**
 - Input handling
 - Encapsulation
@@ -41,7 +42,7 @@ Reads full‑line string input safely from the user.
 
 ---
 
-### readInt and readDouble
+### `readInt and readDouble`
 **Concepts Used:**
 - Input validation
 - Error handling
@@ -77,7 +78,7 @@ Displays the banking system menu independently of business logic.
 Represents a generic bank account and defines common attributes and operations such as deposit, withdrawal, and display.  
 Declares a pure virtual function to enforce derived‑class implementation.
 
-### SavingAccount and CurrentAccount
+### `SavingAccount and CurrentAccount`
 
 **Concepts Used:**
 - Inheritance
@@ -87,7 +88,7 @@ Declares a pure virtual function to enforce derived‑class implementation.
 Derived classes representing specific account types.  
 They override virtual functions from BankAccount to provide account‑specific behavior.
 
-## FactoryMethod
+## `FactoryMethod`
 
 **Concepts Used:**
 - Factory Method Pattern
@@ -99,7 +100,7 @@ This removes object‑creation responsibility from main.
 
 ---
 
-## Singleton
+## `Singleton`
 
 **Concepts Used:**
 - Singleton pattern

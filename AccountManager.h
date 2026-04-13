@@ -31,6 +31,14 @@ class AccountManager {
         }
         return nullptr;
     }
+    BankAccount* findMobile(const std::string& mobile){
+        for (auto& it : accounts) {
+            if (!it.second->mobile().compare(mobile)) {
+                return it.second.get();
+            }
+        }
+        return nullptr;
+    }
 
     bool removeAccount(const std::string& number) {
         return accounts.erase(number) > 0;

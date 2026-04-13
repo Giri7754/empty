@@ -8,10 +8,11 @@ protected:
     std::string name_;
     std::string number_;
     double balance_{0.0};
+    std::string mobile_;
 
 public:
-    BankAccount(std::string name, std::string number, double opening)
-        : name_(std::move(name)), number_(std::move(number)), balance_(opening) {}
+    BankAccount(std::string name, std::string number, double opening, std::string mobile)
+        : name_(std::move(name)), number_(std::move(number)), balance_(opening), mobile_(std::move(mobile)) {}
 
     virtual ~BankAccount() = default;
 
@@ -41,6 +42,7 @@ public:
     void print() const {
         std::cout << "----------------------------\n";
         std::cout << "Account Holder : " << name_ << "\n";
+        std::cout << "Mobile Number  : " << mobile_ << "\n";
         std::cout << "Account Number : " << number_ << "\n";
         std::cout << "Account Type   : " << accountType() << "\n";
         std::cout << "Balance        : " << std::fixed << std::setprecision(2) << balance_ << "\n";

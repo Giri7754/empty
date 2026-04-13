@@ -19,6 +19,10 @@ int main() {
 
         case 1: { // Create
             std::string name = readLine("Enter Name         : ");
+            std::string mobile = readLine("Enter Mobile Number: ");
+            if (!isValidMobileNumber(mobile)) {
+                break;
+            }
             std::string type = readLine("Enter Account Type (saving/current) : ");
             std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
@@ -28,11 +32,11 @@ int main() {
                 break;
             }
 
-            std::string number = (type == "saving") 
+            std::string number = (type[0] == 's') 
             ? generateAccountNumber(type, SBIcounter) 
             : generateAccountNumber(type, HDFCcounter);
             
-            auto acc = AccountFactory::createAccount(type, name, number, opening);
+            auto acc = AccountFactory::createAccount(type, name, number, opening, mobile);
 
             if(!acc) {
                 std::cout << "Invalid account type.\n";
@@ -80,8 +84,8 @@ int main() {
         }
 
         case 4: { // Display
-            std::string num = readLine("Enter Account Number: ");
-            auto acc = manager.find(num);
+            std::string mobile_number = readLine("Enter Your Mobile Number: ");
+            auto acc = manager.findMobile(mobile_number);
             if (acc != nullptr) {
                 acc->print();
                 break;
